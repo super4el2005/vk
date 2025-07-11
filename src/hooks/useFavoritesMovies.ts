@@ -1,5 +1,5 @@
 import { useLocalStorage } from "@mantine/hooks";
-import type { Movie } from "../types";
+import type { Movie } from "../utils";
 import superjson from "superjson";
 
 export function useFavoritesMovies() {

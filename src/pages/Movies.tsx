@@ -9,15 +9,28 @@ import {
   Tooltip,
   ActionIcon,
   Skeleton,
+  Loader,
+  Center,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useQuery } from "@tanstack/react-query";
-import { NavLink, useSearchParams } from "react-router";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { NavLink } from "react-router";
 import { api } from "../main";
 import { CiHeart } from "react-icons/ci";
 import { useDebouncedCallback } from "@mantine/hooks";
-import type { Genre, Movie } from "../types";
+import {
+  CURRENT_YEAR,
+  FILTER_SCHEMA,
+  paramsSerializer,
+  type FilterValues,
+  type Genre,
+  type Movie,
+} from "../utils";
 import MovieCard from "../components/MovieCard";
+import { useInViewport } from "@mantine/hooks";
+import { zodResolver } from "mantine-form-zod-resolver";
+import { useFilterSearchParams } from "../hooks/useFilterSearchParams";
+import { useEffect } from "react";
 
 function Filter() {
   const genres = useQuery({
@@ -30,15 +43,15 @@ function Filter() {
       }),
   });
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const debounceSearchParams = useDebouncedCallback(setSearchParams, 500);
+  const [filterValues, setFilterParams] = useFilterSearchParams();
+  const debounceSearchParams = useDebouncedCallback(setFilterParams, 500);
 
-  const filterForm = useForm({
+  const filterForm = useForm<FilterValues>({
     mode: "controlled",
-    initialValues: searchParams,
-    onValuesChange: (values) => debounceSearchParams(values),
+    initialValues: filterValues,
+    validate: zodResolver(FILTER_SCHEMA),
+    onValuesChange: (values) => debounceSearchParams(setFilterParams(values)),
   });
-
   return (
     <form>
       <MultiSelect
@@ -49,13 +62,14 @@ function Filter() {
           value: genre.slug,
           label: genre.name,
         }))}
-        {...filterForm.getInputProps("genres")}
+        {...filterForm.getInputProps("genres.name")}
         searchable
       />
       <Text fw={700} size="sm" mt={30} mb={15}>
         Рейтинг
       </Text>
       <RangeSlider
+        defaultValue={[1, 10]}
         min={1}
         max={10}
         step={0.1}
@@ -64,38 +78,41 @@ function Filter() {
           { value: 1, label: "1" },
           { value: 10, label: "10" },
         ]}
-        {...filterForm.getInputProps("rating")}
+        {...filterForm.getInputProps("rating.kp")}
       />
       <Text fw={700} size="sm" mt={30} mb={15}>
         Года
       </Text>
       <RangeSlider
+        defaultValue={[1990, CURRENT_YEAR]}
         min={1990}
-        max={new Date().getFullYear()}
+        max={CURRENT_YEAR}
         minRange={0}
         marks={[
           { value: 1990, label: "1990" },
           {
-            value: new Date().getFullYear(),
-            label: String(new Date().getFullYear()),
+            value: CURRENT_YEAR,
+            label: String(CURRENT_YEAR),
           },
         ]}
-        {...filterForm.getInputProps("yearRange")}
+        {...filterForm.getInputProps("year")}
       />
     </form>
   );
 }
 
 export default function Page() {
-  const [searchParams] = useSearchParams();
+  const [filterValues] = useFilterSearchParams();
+  const { ref, inViewport } = useInViewport();
 
-  const movies = useQuery({
-    queryKey: ["movies", searchParams.toString()],
-    queryFn: () =>
+  const movies = useInfiniteQuery({
+    queryKey: ["movies", filterValues.toString()],
+    queryFn: ({ pageParam }) =>
       api.get<{ docs: Movie[] }>("/v1.4/movie", {
         params: {
-          ...searchParams,
+          ...filterValues,
           limit: 50,
+          page: pageParam,
           notNullFields: [
             "name",
             "rating.kp",
@@ -105,8 +122,19 @@ export default function Page() {
             "year",
           ],
         },
+        paramsSerializer,
       }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.data.docs.length === 50 ? allPages.length + 1 : undefined;
+    },
   });
+
+  useEffect(() => {
+    if (inViewport && movies.hasNextPage && !movies.isFetchingNextPage) {
+      movies.fetchNextPage();
+    }
+  }, [inViewport, movies.hasNextPage, movies.isFetchingNextPage]);
 
   return (
     <Container size="xl" py={20}>
@@ -126,10 +154,15 @@ export default function Page() {
             spacing={{ base: 10, sm: "xl" }}
             verticalSpacing={{ base: "md", sm: "xl" }}
           >
-            {movies.data?.data.docs.map((movie) => (
-              <MovieCard key={movie.id} {...movie} />
-            ))}
+            {movies.data?.pages.map((page) =>
+              page.data.docs.map((movie) => (
+                <MovieCard key={movie.id} {...movie} />
+              ))
+            )}
           </SimpleGrid>
+          <Center ref={ref}>
+            <Loader />
+          </Center>
         </Skeleton>
         <Tooltip label="Избранное">
           <ActionIcon

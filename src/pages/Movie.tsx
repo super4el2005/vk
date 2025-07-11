@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
 import { api } from "../main";
-import type { Movie } from "../types";
+import type { Movie } from "../utils";
 import { Grid, Image, Skeleton, Stack, Flex } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 

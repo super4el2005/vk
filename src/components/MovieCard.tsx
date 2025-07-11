@@ -8,7 +8,7 @@ import {
   Tooltip,
   ActionIcon,
 } from "@mantine/core";
-import type { Movie } from "../types";
+import type { Movie } from "../utils";
 import { CiHeart } from "react-icons/ci";
 import { NavLink } from "react-router";
 import { useFavoritesMovies } from "../hooks/useFavoritesMovies";
