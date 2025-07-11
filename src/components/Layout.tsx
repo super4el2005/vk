@@ -1,0 +1,19 @@
+import { Button, Container } from "@mantine/core";
+import { FaChevronLeft } from "react-icons/fa6";
+import { NavLink, Outlet } from "react-router";
+
+export default function Layout() {
+  return (
+    <Container size="xl" py="md">
+      <Button
+        leftSection={<FaChevronLeft />}
+        mb={20}
+        component={NavLink}
+        to={"/"}
+      >
+        Главная
+      </Button>
+      <Outlet />
+    </Container>
+  );
+}
