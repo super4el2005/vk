@@ -21,13 +21,10 @@ import ToggleFavorite from "../components/ToggleFavorite";
 
 export default function Page() {
   const params = useParams();
-  const [favorites, setFavorites] = useFavoritesMovies();
-  
   const movie = useQuery({
     queryKey: ["movie", params.id],
     queryFn: () => api.get<Movie>(`/v1.4/movie/${params.id}`),
   });
-
   const movieData = movie.data?.data;
   if (movie.isLoading) {
     return (
