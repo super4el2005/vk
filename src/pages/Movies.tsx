@@ -203,17 +203,7 @@ export default function Page() {
                 {movies.hasNextPage && (
                   <Box ref={ref} py="xl">
                     <Center>
-                      {movies.isFetchingNextPage ? (
-                        <Loader />
-                      ) : (
-                        <Button
-                          variant="light"
-                          onClick={() => movies.fetchNextPage()}
-                          disabled={movies.isFetchingNextPage}
-                        >
-                          Загрузить ещё
-                        </Button>
-                      )}
+                      {movies.isFetchingNextPage && <Loader />}
                     </Center>
                   </Box>
                 )}
