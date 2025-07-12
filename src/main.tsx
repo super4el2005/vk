@@ -3,6 +3,7 @@ import "@mantine/core/styles.css";
 
 import ReactDOM from "react-dom/client";
 import { MantineProvider } from "@mantine/core";
+import { ModalsProvider } from '@mantine/modals';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
 
@@ -36,9 +37,11 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <MantineProvider>
+        <ModalsProvider>
         <QueryClientProvider client={queryClient}>
           <Outlet />
         </QueryClientProvider>
+          </ModalsProvider>
       </MantineProvider>
     ),
     children: [
