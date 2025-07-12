@@ -31,7 +31,6 @@ import { useFilterSearchParams } from "../hooks/useFilterSearchParams";
 import { useInfiniteMovies } from "../hooks/useInfiniteMovies";
 import { useEffect } from "react";
 import { useIntersection } from "@mantine/hooks";
-import VirtualizedMovieGrid from "../components/VirtualizedMovieGrid";
 
 function Filter() {
   const genres = useQuery({
@@ -153,8 +152,17 @@ function Filter() {
 export default function Page() {
   const [filterValues] = useFilterSearchParams();
   const movies = useInfiniteMovies(filterValues);
+  const { ref, entry } = useIntersection({
+    threshold: 1,
+  });
 
   const allMovies = movies.data?.pages.flatMap(page => page.data.docs) || [];
+
+  useEffect(() => {
+    if (entry?.isIntersecting && movies.hasNextPage && !movies.isFetchingNextPage) {
+      movies.fetchNextPage();
+    }
+  }, [entry?.isIntersecting, movies.hasNextPage, movies.isFetchingNextPage]);
 
   return (
     <Box
@@ -170,13 +178,53 @@ export default function Page() {
           </Box>
           
           <Box flex={1}>
-            <VirtualizedMovieGrid
-              movies={allMovies}
-              isLoading={movies.isLoading}
-              isFetchingNextPage={movies.isFetchingNextPage}
-              hasNextPage={movies.hasNextPage}
-              onLoadMore={() => movies.fetchNextPage()}
-            />
+            {movies.isLoading ? (
+              <Center h={400}>
+                <Loader size="xl" />
+              </Center>
+            ) : allMovies.length === 0 ? (
+              <Center h={400}>
+                <Text size="lg" c="dimmed">
+                  Фильмы не найдены
+                </Text>
+              </Center>
+            ) : (
+              <>
+                <SimpleGrid
+                  cols={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                  spacing="xl"
+                  verticalSpacing="xl"
+                >
+                  {allMovies.map((movie) => (
+                    <MovieCard key={movie.id} {...movie} />
+                  ))}
+                </SimpleGrid>
+                
+                {movies.hasNextPage && (
+                  <Box ref={ref} py="xl">
+                    <Center>
+                      {movies.isFetchingNextPage ? (
+                        <Loader />
+                      ) : (
+                        <Button
+                          variant="light"
+                          onClick={() => movies.fetchNextPage()}
+                          disabled={movies.isFetchingNextPage}
+                        >
+                          Загрузить ещё
+                        </Button>
+                      )}
+                    </Center>
+                  </Box>
+                )}
+                
+                {!movies.hasNextPage && allMovies.length > 0 && (
+                  <Center py="xl">
+                    <Text c="dimmed">Все фильмы загружены</Text>
+                  </Center>
+                )}
+              </>
+            )}
           </Box>
           
           <Box w={{ base: "100%", lg: "auto" }}>
