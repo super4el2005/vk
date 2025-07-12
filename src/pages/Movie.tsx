@@ -12,11 +12,9 @@ import {
   Group, 
   Container,
   Box,
-  Rating,
   Paper,
-  Divider,
   ActionIcon,
-  Tooltip,
+  Title,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useFavoritesMovies } from "../hooks/useFavoritesMovies";
@@ -51,21 +49,21 @@ export default function Page() {
       <Box
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          backgroundColor: "#f8f9fa",
         }}
       >
         <Container size="xl" py="xl">
           <Grid gutter="xl">
             <Grid.Col span={{ base: 12, md: 4 }}>
-              <Skeleton height={600} radius="xl" />
+              <Skeleton height={600} />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 8 }}>
               <Stack gap="lg">
-                <Skeleton height={60} radius="md" />
-                <Skeleton height={30} width="60%" radius="md" />
-                <Skeleton height={20} width="40%" radius="md" />
-                <Skeleton height={100} radius="md" />
-                <Skeleton height={40} width="80%" radius="md" />
+                <Skeleton height={60} />
+                <Skeleton height={30} width="60%" />
+                <Skeleton height={20} width="40%" />
+                <Skeleton height={100} />
+                <Skeleton height={40} width="80%" />
               </Stack>
             </Grid.Col>
           </Grid>
@@ -86,33 +84,29 @@ export default function Page() {
     <Box
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        backgroundColor: "#f8f9fa",
       }}
     >
       <Container size="xl" py="xl">
         <Grid gutter="xl">
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Paper radius="xl" p="md" shadow="xl">
+            <Paper shadow="sm" p="md" withBorder>
               <Image
-                radius="lg"
                 src={movieData.poster?.url}
                 alt={movieData.name || movieData.alternativeName}
                 fallbackSrc="https://images.unsplash.com/photo-1489599735734-79b4169c2a78?w=400&h=600&fit=crop"
-                style={{
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
-                }}
               />
             </Paper>
           </Grid.Col>
           
           <Grid.Col span={{ base: 12, md: 8 }}>
-            <Paper radius="xl" p="xl" shadow="xl" h="100%">
+            <Paper shadow="sm" p="xl" withBorder h="100%">
               <Stack gap="lg">
                 <Flex justify="space-between" align="flex-start">
                   <Box flex={1}>
-                    <Text size="xl" fw={700} mb="xs">
+                    <Title order={1} mb="xs" c="dark">
                       {movieData.name || movieData.alternativeName}
-                    </Text>
+                    </Title>
                     {movieData.alternativeName && movieData.name && (
                       <Text size="lg" c="dimmed" mb="md">
                         {movieData.alternativeName}
@@ -120,26 +114,20 @@ export default function Page() {
                     )}
                   </Box>
                   
-                  <Tooltip label={isFavorite ? "Убрать из избранного" : "Добавить в избранное"}>
-                    <ActionIcon
-                      variant={isFavorite ? "filled" : "outline"}
-                      color={isFavorite ? "red" : "gray"}
-                      size="xl"
-                      radius="xl"
-                      onClick={toggleFavorite}
-                    >
-                      {isFavorite ? <FaHeart size={20} /> : <CiHeart size={22} />}
-                    </ActionIcon>
-                  </Tooltip>
+                  <ActionIcon
+                    variant={isFavorite ? "filled" : "outline"}
+                    color={isFavorite ? "red" : "gray"}
+                    size="xl"
+                    onClick={toggleFavorite}
+                  >
+                    {isFavorite ? <FaHeart size={20} /> : <CiHeart size={22} />}
+                  </ActionIcon>
                 </Flex>
 
                 <Group gap="lg">
-                  <Flex align="center" gap="xs">
-                    <Rating value={movieData.rating.kp / 2} fractions={2} readOnly />
-                    <Text fw={600} size="lg">
-                      {movieData.rating.kp.toFixed(1)}
-                    </Text>
-                  </Flex>
+                  <Text fw={600} size="xl" c="dark">
+                    {movieData.rating.kp.toFixed(1)}
+                  </Text>
                   
                   <Badge
                     leftSection={<FaCalendar size={12} />}
@@ -151,19 +139,17 @@ export default function Page() {
                   </Badge>
                 </Group>
 
-                <Divider />
-
                 <Box>
-                  <Text fw={600} mb="sm" size="lg">
+                  <Text fw={600} mb="sm" size="lg" c="dark">
                     Жанры
                   </Text>
                   <Group gap="xs">
                     {movieData.genres.map((genre) => (
                       <Badge
                         key={genre.name}
-                        variant="gradient"
-                        gradient={{ from: "violet", to: "purple" }}
+                        variant="outline"
                         size="md"
+                        color="gray"
                       >
                         {genre.name}
                       </Badge>
@@ -172,20 +158,15 @@ export default function Page() {
                 </Box>
 
                 {movieData.description && (
-                  <>
-                    <Divider />
-                    <Box>
-                      <Text fw={600} mb="sm" size="lg">
-                        Описание
-                      </Text>
-                      <Text size="md" style={{ lineHeight: 1.6 }}>
-                        {movieData.description}
-                      </Text>
-                    </Box>
-                  </>
+                  <Box>
+                    <Text fw={600} mb="sm" size="lg" c="dark">
+                      Описание
+                    </Text>
+                    <Text size="md" style={{ lineHeight: 1.6 }} c="dark">
+                      {movieData.description}
+                    </Text>
+                  </Box>
                 )}
-
-                <Divider />
 
                 <Group gap="xl">
                   {movieData.movieLength && (

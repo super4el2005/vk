@@ -6,12 +6,11 @@ import {
   RangeSlider,
   SimpleGrid,
   Text,
-  Tooltip,
   ActionIcon,
   Center,
   Loader,
-  Button,
   Box,
+  Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useQuery } from "@tanstack/react-query";
@@ -63,21 +62,20 @@ function Filter() {
 
   return (
     <Paper
-      shadow="lg"
-      p="xl"
-      radius="xl"
+      shadow="sm"
+      p="lg"
+      withBorder
       h="min-content"
       pos={{ base: "static", lg: "sticky" }}
-      top={30}
+      top={20}
       style={{
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        color: "white",
+        backgroundColor: "white",
       }}
     >
       <form>
-        <Text fw={700} size="lg" mb="lg" ta="center">
+        <Title order={4} mb="lg">
           Фильтры
-        </Text>
+        </Title>
         
         <MultiSelect
           disabled={genres.isLoading}
@@ -86,21 +84,11 @@ function Filter() {
           data={genres.data?.data.map((genre) => genre.name)}
           {...filterForm.getInputProps("genres.name")}
           searchable
-          styles={{
-            input: {
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
-              border: "1px solid rgba(255, 255, 255, 0.3)",
-              color: "white",
-            },
-            label: {
-              color: "white",
-              fontWeight: 600,
-            },
-          }}
+          mb="lg"
         />
         
-        <Text fw={700} size="sm" mt={30} mb={15}>
-          Рейтинг
+        <Text fw={500} size="sm" mb="sm">
+          Рейтинг: {filterForm.values.rating?.kp?.[0]} - {filterForm.values.rating?.kp?.[1]}
         </Text>
         <RangeSlider
           defaultValue={[1, 10]}
@@ -113,16 +101,11 @@ function Filter() {
             { value: 10, label: "10" },
           ]}
           {...filterForm.getInputProps("rating.kp")}
-          styles={{
-            track: { backgroundColor: "rgba(255, 255, 255, 0.3)" },
-            bar: { backgroundColor: "white" },
-            thumb: { backgroundColor: "white", borderColor: "white" },
-            markLabel: { color: "white" },
-          }}
+          mb="lg"
         />
         
-        <Text fw={700} size="sm" mt={30} mb={15}>
-          Года
+        <Text fw={500} size="sm" mb="sm">
+          Год: {filterForm.values.year?.[0]} - {filterForm.values.year?.[1]}
         </Text>
         <RangeSlider
           defaultValue={[1990, CURRENT_YEAR]}
@@ -137,12 +120,6 @@ function Filter() {
             },
           ]}
           {...filterForm.getInputProps("year")}
-          styles={{
-            track: { backgroundColor: "rgba(255, 255, 255, 0.3)" },
-            bar: { backgroundColor: "white" },
-            thumb: { backgroundColor: "white", borderColor: "white" },
-            markLabel: { color: "white" },
-          }}
         />
       </form>
     </Paper>
@@ -168,19 +145,23 @@ export default function Page() {
     <Box
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        backgroundColor: "#f8f9fa",
       }}
     >
-      <Container size="xl" py={30}>
-        <Flex gap={30} direction={{ base: "column", lg: "row" }}>
-          <Box w={{ base: "100%", lg: 300 }}>
+      <Container size="xl" py="xl">
+        <Flex gap="xl" direction={{ base: "column", lg: "row" }}>
+          <Box w={{ base: "100%", lg: 280 }}>
             <Filter />
           </Box>
           
           <Box flex={1}>
+            <Title order={2} mb="xl" c="dark">
+              Фильмы
+            </Title>
+            
             {movies.isLoading ? (
               <Center h={400}>
-                <Loader size="xl" />
+                <Loader size="lg" />
               </Center>
             ) : allMovies.length === 0 ? (
               <Center h={400}>
@@ -191,9 +172,9 @@ export default function Page() {
             ) : (
               <>
                 <SimpleGrid
-                  cols={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                  spacing="xl"
-                  verticalSpacing="xl"
+                  cols={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+                  spacing="lg"
+                  verticalSpacing="lg"
                 >
                   {allMovies.map((movie) => (
                     <MovieCard key={movie.id} {...movie} />
@@ -218,23 +199,20 @@ export default function Page() {
           </Box>
           
           <Box w={{ base: "100%", lg: "auto" }}>
-            <Tooltip label="Избранное">
-              <ActionIcon
-                component={NavLink}
-                to="/favorites"
-                variant="gradient"
-                gradient={{ from: "pink", to: "red" }}
-                size="xl"
-                radius="xl"
-                pos={{ base: "static", lg: "sticky" }}
-                top={30}
-                style={{
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                }}
-              >
-                <CiHeart size={24} />
-              </ActionIcon>
-            </Tooltip>
+            <ActionIcon
+              component={NavLink}
+              to="/favorites"
+              variant="filled"
+              color="red"
+              size="lg"
+              pos={{ base: "static", lg: "sticky" }}
+              top={20}
+              style={{
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <CiHeart size={20} />
+            </ActionIcon>
           </Box>
         </Flex>
       </Container>

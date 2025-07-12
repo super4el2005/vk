@@ -7,7 +7,7 @@ export default function Layout() {
     <Box
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        backgroundColor: "#f8f9fa",
       }}
     >
       <Container size="xl" py="md">
@@ -16,12 +16,8 @@ export default function Layout() {
           mb={20}
           component={NavLink}
           to="/"
-          variant="white"
-          radius="xl"
+          variant="outline"
           size="md"
-          style={{
-            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-          }}
         >
           Главная
         </Button>

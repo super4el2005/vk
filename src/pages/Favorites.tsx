@@ -1,4 +1,4 @@
-import { Center, SimpleGrid, Text, Box, Container } from "@mantine/core";
+import { Center, SimpleGrid, Text, Box, Container, Title } from "@mantine/core";
 import MovieCard from "../components/MovieCard";
 import { useFavoritesMovies } from "../hooks/useFavoritesMovies";
 
@@ -9,19 +9,19 @@ export default function Page() {
     <Box
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        backgroundColor: "#f8f9fa",
       }}
     >
-      <Container size="xl" py={30}>
-        <Text size="xl" fw={700} mb="xl" ta="center">
+      <Container size="xl" py="xl">
+        <Title order={2} mb="xl" ta="center" c="dark">
           Избранные фильмы
-        </Text>
+        </Title>
         
         {favorites?.length ? (
           <SimpleGrid
-            cols={{ base: 1, sm: 2, md: 3, lg: 4 }}
-            spacing="xl"
-            verticalSpacing="xl"
+            cols={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+            spacing="lg"
+            verticalSpacing="lg"
           >
             {favorites.map((movie) => (
               <MovieCard key={movie.id} {...movie} />
