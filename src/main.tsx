@@ -24,7 +24,7 @@ const queryClient = new QueryClient({
 export const api = axios.create({
   baseURL: "https://api.kinopoisk.dev/",
   headers: {
-    "X-API-KEY": "PW0EZG4-KT2MRWC-MCVHTV4-A22X0XH",
+    "X-API-KEY": "X7QT4YK-0R0M5D8-MV0QT0T-23TBSSN",
   },
   paramsSerializer: {
     indexes: null,
