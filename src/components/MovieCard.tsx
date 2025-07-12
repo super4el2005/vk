@@ -5,41 +5,14 @@ import {
   Text,
   Flex,
   Badge,
-  ActionIcon,
   Box,
   Stack,
 } from "@mantine/core";
 import type { Movie } from "../utils";
-import { CiHeart } from "react-icons/ci";
-import { FaHeart } from "react-icons/fa6";
 import { NavLink } from "react-router";
-import { useFavoritesMovies } from "../hooks/useFavoritesMovies";
-import { modals } from '@mantine/modals';
+import ToggleFavorite from "./ToggleFavorite";
 
 function MovieCard(movie: Movie) {
-  const [favorites, setFavorites] = useFavoritesMovies();
-  const isFavorite = Boolean(
-    favorites?.find((favorite) => favorite.id === movie.id)
-  );
-
-   const openModal = (event: React.MouseEvent<HTMLButtonElement>) => {
-  event.preventDefault();
-     modals.openConfirmModal({
-    title: isFavorite ? 'Удалить из избранного' : 'Добавить в избранное',
-    children: (
-      <Text size="sm">
-        {isFavorite ? "Вы точно хотите удалить фильм из избранного?" : "Вы точно хотите добавить фильм в избранное?"}
-      
-      </Text>
-    ),
-    labels: { confirm: 'Принять', cancel: 'Закрыть' },
-    onConfirm: () =>  setFavorites((prev) =>
-      isFavorite
-        ? prev.filter((favorite) => favorite.id !== movie.id)
-        : [...prev, movie]
-    )
-  })
-   }
   
   return (
     <Card
@@ -65,21 +38,7 @@ function MovieCard(movie: Movie) {
             fallbackSrc="https://images.unsplash.com/photo-1489599735734-79b4169c2a78?w=400&h=600&fit=crop"
           />
           
-          <ActionIcon
-            pos="absolute"
-            top={8}
-            right={8}
-            variant={isFavorite ? "filled" : "white"}
-            color={isFavorite ? "red" : "gray"}
-            size="md"
-            onClick={openModal}
-            style={{
-              backgroundColor: isFavorite ? undefined : "white",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            }}
-          >
-            {isFavorite ? <FaHeart size={14} /> : <CiHeart size={16} />}
-          </ActionIcon>
+         <ToggleFavorite {...movie} />
         </Box>
       </Card.Section>
 
