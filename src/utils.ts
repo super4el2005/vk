@@ -4,6 +4,7 @@ export type Movie = {
   id: number;
   name: string;
   alternativeName: string;
+  description?: string;
   genres: {
     name: string;
   }[];
@@ -15,6 +16,10 @@ export type Movie = {
     url: string;
     previewUrl: string;
   };
+  movieLength?: number;
+  countries?: {
+    name: string;
+  }[];
 };
 
 export type Genre = {

@@ -8,6 +8,10 @@ import {
   Text,
   Tooltip,
   ActionIcon,
+  Center,
+  Loader,
+  Button,
+  Box,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useQuery } from "@tanstack/react-query";
@@ -18,15 +22,15 @@ import { useDebouncedCallback } from "@mantine/hooks";
 import {
   CURRENT_YEAR,
   FILTER_SCHEMA,
-  paramsSerializer,
   type FilterValues,
   type Genre,
-  type Movie,
 } from "../utils";
 import MovieCard from "../components/MovieCard";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { useFilterSearchParams } from "../hooks/useFilterSearchParams";
-import superjson from "superjson";
+import { useInfiniteMovies } from "../hooks/useInfiniteMovies";
+import { useEffect } from "react";
+import { useIntersection } from "@mantine/hooks";
 
 function Filter() {
   const genres = useQuery({
@@ -56,110 +60,186 @@ function Filter() {
     validate: zodResolver(FILTER_SCHEMA),
     onValuesChange: (values) => debounceSearchParams(values),
   });
+
   return (
-    <form>
-      <MultiSelect
-        disabled={genres.isLoading}
-        label="Жанры"
-        placeholder="Выберите жанры"
-        data={genres.data?.data.map((genre) => genre.name)}
-        {...filterForm.getInputProps("genres.name")}
-        searchable
-      />
-      <Text fw={700} size="sm" mt={30} mb={15}>
-        Рейтинг
-      </Text>
-      <RangeSlider
-        defaultValue={[1, 10]}
-        min={1}
-        max={10}
-        step={0.1}
-        minRange={0}
-        marks={[
-          { value: 1, label: "1" },
-          { value: 10, label: "10" },
-        ]}
-        {...filterForm.getInputProps("rating.kp")}
-      />
-      <Text fw={700} size="sm" mt={30} mb={15}>
-        Года
-      </Text>
-      <RangeSlider
-        defaultValue={[1990, CURRENT_YEAR]}
-        min={1990}
-        max={CURRENT_YEAR}
-        minRange={0}
-        marks={[
-          { value: 1990, label: "1990" },
-          {
-            value: CURRENT_YEAR,
-            label: String(CURRENT_YEAR),
-          },
-        ]}
-        {...filterForm.getInputProps("year")}
-      />
-    </form>
+    <Paper
+      shadow="lg"
+      p="xl"
+      radius="xl"
+      h="min-content"
+      pos={{ base: "static", lg: "sticky" }}
+      top={30}
+      style={{
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        color: "white",
+      }}
+    >
+      <form>
+        <Text fw={700} size="lg" mb="lg" ta="center">
+          Фильтры
+        </Text>
+        
+        <MultiSelect
+          disabled={genres.isLoading}
+          label="Жанры"
+          placeholder="Выберите жанры"
+          data={genres.data?.data.map((genre) => genre.name)}
+          {...filterForm.getInputProps("genres.name")}
+          searchable
+          styles={{
+            input: {
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              border: "1px solid rgba(255, 255, 255, 0.3)",
+              color: "white",
+            },
+            label: {
+              color: "white",
+              fontWeight: 600,
+            },
+          }}
+        />
+        
+        <Text fw={700} size="sm" mt={30} mb={15}>
+          Рейтинг
+        </Text>
+        <RangeSlider
+          defaultValue={[1, 10]}
+          min={1}
+          max={10}
+          step={0.1}
+          minRange={0}
+          marks={[
+            { value: 1, label: "1" },
+            { value: 10, label: "10" },
+          ]}
+          {...filterForm.getInputProps("rating.kp")}
+          styles={{
+            track: { backgroundColor: "rgba(255, 255, 255, 0.3)" },
+            bar: { backgroundColor: "white" },
+            thumb: { backgroundColor: "white", borderColor: "white" },
+            markLabel: { color: "white" },
+          }}
+        />
+        
+        <Text fw={700} size="sm" mt={30} mb={15}>
+          Года
+        </Text>
+        <RangeSlider
+          defaultValue={[1990, CURRENT_YEAR]}
+          min={1990}
+          max={CURRENT_YEAR}
+          minRange={0}
+          marks={[
+            { value: 1990, label: "1990" },
+            {
+              value: CURRENT_YEAR,
+              label: String(CURRENT_YEAR),
+            },
+          ]}
+          {...filterForm.getInputProps("year")}
+          styles={{
+            track: { backgroundColor: "rgba(255, 255, 255, 0.3)" },
+            bar: { backgroundColor: "white" },
+            thumb: { backgroundColor: "white", borderColor: "white" },
+            markLabel: { color: "white" },
+          }}
+        />
+      </form>
+    </Paper>
   );
 }
 
 export default function Page() {
   const [filterValues] = useFilterSearchParams();
-  const movies = useQuery({
-    queryKey: ["movies", superjson.stringify(filterValues)],
-    queryFn: () =>
-      api.get<{ docs: Movie[] }>("/v1.4/movie", {
-        params: {
-          ...filterValues,
-          limit: 50,
-          notNullFields: [
-            "name",
-            "rating.kp",
-            "poster.url",
-            "description",
-            "genres.name",
-            "year",
-          ],
-        },
-        paramsSerializer,
-      }),
+  const movies = useInfiniteMovies(filterValues);
+  
+  const { ref, entry } = useIntersection({
+    threshold: 1,
   });
 
+  useEffect(() => {
+    if (entry?.isIntersecting && movies.hasNextPage && !movies.isFetchingNextPage) {
+      movies.fetchNextPage();
+    }
+  }, [entry?.isIntersecting, movies.hasNextPage, movies.isFetchingNextPage]);
+
+  const allMovies = movies.data?.pages.flatMap(page => page.data.docs) || [];
+
   return (
-    <Container size="xl" py={20}>
-      <Flex gap={30} direction={{ base: "column", lg: "row" }}>
-        <Paper
-          shadow="xs"
-          p="xl"
-          h={"min-content"}
-          pos={{ base: "static", lg: "sticky" }}
-          top={30}
-        >
-          <Filter />
-        </Paper>
-        <SimpleGrid
-          cols={{ base: 1, sm: 2, lg: 3 }}
-          spacing={{ base: 10, sm: "xl" }}
-          verticalSpacing={{ base: "md", sm: "xl" }}
-        >
-          {movies.data?.data.docs.map((movie) => (
-            <MovieCard key={movie.id} {...movie} />
-          ))}
-        </SimpleGrid>
-        <Tooltip label="Избранное">
-          <ActionIcon
-            component={NavLink}
-            to={"/favorites"}
-            variant="default"
-            aria-label="Избранное"
-            size={"lg"}
-            radius={"lg"}
-            pos={{ base: "static", lg: "sticky" }}
-            top={30}
-          >
-            <CiHeart size={24} />
-          </ActionIcon>
-        </Tooltip>
-      </Flex>
-    </Container>
+    <Box
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+      }}
+    >
+      <Container size="xl" py={30}>
+        <Flex gap={30} direction={{ base: "column", lg: "row" }}>
+          <Box w={{ base: "100%", lg: 300 }}>
+            <Filter />
+          </Box>
+          
+          <Box flex={1}>
+            {movies.isLoading ? (
+              <Center h={400}>
+                <Loader size="xl" />
+              </Center>
+            ) : allMovies.length > 0 ? (
+              <>
+                <SimpleGrid
+                  cols={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                  spacing="xl"
+                  verticalSpacing="xl"
+                >
+                  {allMovies.map((movie) => (
+                    <MovieCard key={movie.id} {...movie} />
+                  ))}
+                </SimpleGrid>
+                
+                {/* Элемент для отслеживания пересечения */}
+                <Box ref={ref} h={20} />
+                
+                {movies.isFetchingNextPage && (
+                  <Center mt="xl">
+                    <Loader />
+                  </Center>
+                )}
+                
+                {!movies.hasNextPage && allMovies.length > 0 && (
+                  <Center mt="xl">
+                    <Text c="dimmed">Все фильмы загружены</Text>
+                  </Center>
+                )}
+              </>
+            ) : (
+              <Center h={400}>
+                <Text size="lg" c="dimmed">
+                  Фильмы не найдены
+                </Text>
+              </Center>
+            )}
+          </Box>
+          
+          <Box w={{ base: "100%", lg: "auto" }}>
+            <Tooltip label="Избранное">
+              <ActionIcon
+                component={NavLink}
+                to="/favorites"
+                variant="gradient"
+                gradient={{ from: "pink", to: "red" }}
+                size="xl"
+                radius="xl"
+                pos={{ base: "static", lg: "sticky" }}
+                top={30}
+                style={{
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                }}
+              >
+                <CiHeart size={24} />
+              </ActionIcon>
+            </Tooltip>
+          </Box>
+        </Flex>
+      </Container>
+    </Box>
   );
 }
