@@ -54,7 +54,7 @@ function MovieCard(movie: Movie) {
       </Group>
       <Group mb="xs">
         {movie.genres.map((genre) => (
-          <Badge color="pink">{genre.name}</Badge>
+          <Badge key={genre.name} color="pink">{genre.name}</Badge>
         ))}
       </Group>
       <Tooltip label={isFavorite ? "Не нравится" : "Нравится"}>

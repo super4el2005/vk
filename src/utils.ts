@@ -42,9 +42,12 @@ export const FILTER_SCHEMA = z
         .tuple([z.number().min(1).max(10), z.number().min(1).max(10)])
         .refine(([min, max]) => max > min, {
           message: "Максимальный рейтинг должен быть больше минимального",
-        }),
-    }),
-    genres: z.array(z.string()).optional(),
+        })
+        .optional(),
+    }).optional(),
+    genres: z.object({
+      name: z.array(z.string()).optional(),
+    }).optional(),
     year: z
       .tuple([
         z.number().min(1990).max(CURRENT_YEAR),

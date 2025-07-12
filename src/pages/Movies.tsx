@@ -8,12 +8,9 @@ import {
   Text,
   Tooltip,
   ActionIcon,
-  Skeleton,
-  Loader,
-  Center,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { NavLink } from "react-router";
 import { api } from "../main";
 import { CiHeart } from "react-icons/ci";
@@ -27,10 +24,9 @@ import {
   type Movie,
 } from "../utils";
 import MovieCard from "../components/MovieCard";
-import { useInViewport } from "@mantine/hooks";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { useFilterSearchParams } from "../hooks/useFilterSearchParams";
-import { useEffect } from "react";
+import superjson from "superjson";
 
 function Filter() {
   const genres = useQuery({
@@ -48,9 +44,17 @@ function Filter() {
 
   const filterForm = useForm<FilterValues>({
     mode: "controlled",
-    initialValues: filterValues,
+    initialValues: filterValues || {
+      rating: {
+        kp: [1, 10],
+      },
+      genres: {
+        name: [],
+      },
+      year: [1990, CURRENT_YEAR],
+    },
     validate: zodResolver(FILTER_SCHEMA),
-    onValuesChange: (values) => debounceSearchParams(setFilterParams(values)),
+    onValuesChange: (values) => debounceSearchParams(values),
   });
   return (
     <form>
@@ -58,10 +62,7 @@ function Filter() {
         disabled={genres.isLoading}
         label="Жанры"
         placeholder="Выберите жанры"
-        data={genres.data?.data.map((genre) => ({
-          value: genre.slug,
-          label: genre.name,
-        }))}
+        data={genres.data?.data.map((genre) => genre.name)}
         {...filterForm.getInputProps("genres.name")}
         searchable
       />
@@ -103,16 +104,13 @@ function Filter() {
 
 export default function Page() {
   const [filterValues] = useFilterSearchParams();
-  const { ref, inViewport } = useInViewport();
-
-  const movies = useInfiniteQuery({
-    queryKey: ["movies", filterValues.toString()],
-    queryFn: ({ pageParam }) =>
+  const movies = useQuery({
+    queryKey: ["movies", superjson.stringify(filterValues)],
+    queryFn: () =>
       api.get<{ docs: Movie[] }>("/v1.4/movie", {
         params: {
           ...filterValues,
           limit: 50,
-          page: pageParam,
           notNullFields: [
             "name",
             "rating.kp",
@@ -124,17 +122,7 @@ export default function Page() {
         },
         paramsSerializer,
       }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.data.docs.length === 50 ? allPages.length + 1 : undefined;
-    },
   });
-
-  useEffect(() => {
-    if (inViewport && movies.hasNextPage && !movies.isFetchingNextPage) {
-      movies.fetchNextPage();
-    }
-  }, [inViewport, movies.hasNextPage, movies.isFetchingNextPage]);
 
   return (
     <Container size="xl" py={20}>
@@ -148,22 +136,15 @@ export default function Page() {
         >
           <Filter />
         </Paper>
-        <Skeleton visible={movies.isLoading}>
-          <SimpleGrid
-            cols={{ base: 1, sm: 2, lg: 3 }}
-            spacing={{ base: 10, sm: "xl" }}
-            verticalSpacing={{ base: "md", sm: "xl" }}
-          >
-            {movies.data?.pages.map((page) =>
-              page.data.docs.map((movie) => (
-                <MovieCard key={movie.id} {...movie} />
-              ))
-            )}
-          </SimpleGrid>
-          <Center ref={ref}>
-            <Loader />
-          </Center>
-        </Skeleton>
+        <SimpleGrid
+          cols={{ base: 1, sm: 2, lg: 3 }}
+          spacing={{ base: 10, sm: "xl" }}
+          verticalSpacing={{ base: "md", sm: "xl" }}
+        >
+          {movies.data?.data.docs.map((movie) => (
+            <MovieCard key={movie.id} {...movie} />
+          ))}
+        </SimpleGrid>
         <Tooltip label="Избранное">
           <ActionIcon
             component={NavLink}
