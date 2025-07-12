@@ -17,6 +17,9 @@ export function useInfiniteMovies(filterValues: Partial<FilterValues> | null) {
     queryFn: ({ pageParam = 1 }) =>
       api.get<MoviesResponse>("/v1.4/movie", {
         params: {
+          rating:{
+            kp:[1,10]
+          },
           ...filterValues,
           limit: 50,
           page: pageParam,
