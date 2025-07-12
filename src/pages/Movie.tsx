@@ -96,7 +96,7 @@ export default function Page() {
                     )}
                   </Box>
                   
-                  <ToggleFavorite {...movie} />
+                  <ToggleFavorite {...movieData} />
                 </Flex>
 
                 <Group gap="lg">
