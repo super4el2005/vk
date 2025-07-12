@@ -13,13 +13,11 @@ import {
   Container,
   Box,
   Paper,
-  ActionIcon,
   Title,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import { useFavoritesMovies } from "../hooks/useFavoritesMovies";
-import { CiHeart } from "react-icons/ci";
-import { FaHeart, FaCalendar, FaClock, FaGlobe } from "react-icons/fa6";
+import {  FaCalendar, FaClock, FaGlobe } from "react-icons/fa6";
+import ToggleFavorite from "../components/ToggleFavorite";
 
 export default function Page() {
   const params = useParams();
@@ -31,19 +29,6 @@ export default function Page() {
   });
 
   const movieData = movie.data?.data;
-  const isFavorite = Boolean(
-    movieData && favorites?.find((favorite) => favorite.id === movieData.id)
-  );
-
-  const toggleFavorite = () => {
-    if (!movieData) return;
-    setFavorites((prev) =>
-      isFavorite
-        ? prev.filter((favorite) => favorite.id !== movieData.id)
-        : [...prev, movieData]
-    );
-  };
-
   if (movie.isLoading) {
     return (
       <Box
@@ -114,14 +99,7 @@ export default function Page() {
                     )}
                   </Box>
                   
-                  <ActionIcon
-                    variant={isFavorite ? "filled" : "outline"}
-                    color={isFavorite ? "red" : "gray"}
-                    size="xl"
-                    onClick={toggleFavorite}
-                  >
-                    {isFavorite ? <FaHeart size={20} /> : <CiHeart size={22} />}
-                  </ActionIcon>
+                  <ToggleFavorite {...movie} />
                 </Flex>
 
                 <Group gap="lg">
